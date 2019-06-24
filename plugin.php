@@ -6,8 +6,6 @@
  * Version: 1.0.0
  * Author URI: https://www.jonasschelde.dk
  * Plugin URI: https://github.com/scheldejonas/wordpress-rest-api-meta
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
 
@@ -54,11 +52,26 @@ function get_post_meta_for_api( $object ) {
  * @param $object
  * @return void
  */
-function update_post_meta_for_api( $value, $object ) {								
+function update_post_meta_for_api( $data, $object ) {								
 
-	foreach ( $value as $key => $inner_value ) {									
-	
-		$response = update_post_meta( $object->ID, $key, $inner_value );			
+	foreach ( $data as $key => $value ) {									
+		
+		if (
+			is_array( $value )
+		) {
+			
+			foreach ( $value as $inner_key => $inner_value ) {
+		
+				$response = update_post_meta( $object->ID, $inner_key, $inner_value );					
+				
+			}
+			
+		}
+		else {
+			
+			$response = update_post_meta( $object->ID, $key, $value );			
+		
+		}
 		
 	}
 
