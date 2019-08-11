@@ -3,9 +3,8 @@
  * Plugin Name: WP REST API Meta
  * Description: See all meta data on post types, terms and users
  * Author: Jonas Schelde
- * Version: 2.0.0
+ * Version: 2.1.0
  * Author URI: https://www.jonasschelde.dk
- * Plugin URI: https://github.com/scheldejonas/wordpress-rest-api-meta
  */
 
 
@@ -36,7 +35,7 @@ function create_api_posts_meta_field() {
 	    'get_callback'	=> 'get_user_meta_for_api',
 	    'update_callback' => 'update_user_meta_for_api',
 	    'schema' => null,	    
-    ])
+    ]);
     
 }
 add_action( 'rest_api_init', 'create_api_posts_meta_field' );
@@ -55,7 +54,7 @@ function get_user_meta_for_api( $object ) {
 	
 	// Validation
 	if (
-		! is_user_logged_in()
+		! current_user_can( 'administrator' )
 	) {
 		
 		return [];
@@ -66,7 +65,28 @@ function get_user_meta_for_api( $object ) {
 	// Pass - all fields
 	$id = $object['id'];
 	
-	return get_user_meta( $id );
+	$userdata = get_userdata( $id );
+	
+	$userdata = json_encode( $userdata, true );
+	
+	$userdata = json_decode( $userdata, true );
+	
+	$expose_userdata['user_login'] = $userdata['data']['user_login'];
+	
+	$expose_userdata['user_nicename'] = $userdata['data']['user_nicename'];
+	
+	$expose_userdata['user_email'] = $userdata['data']['user_email'];
+	
+	$expose_userdata['user_url'] = $userdata['data']['user_url'];
+	
+	$expose_userdata['user_registered'] = $userdata['data']['user_registered'];
+	
+	$expose_userdata['display_name'] = $userdata['data']['display_name'];
+	
+	return array_merge_recursive(
+		get_user_meta( $id ),
+		$expose_userdata
+	);
 	
 } 
 
@@ -85,7 +105,7 @@ function update_user_meta_for_api( $data, $object ) {
 	
 	// Validation
 	if (
-		! is_user_logged_in()
+		! current_user_can( 'administrator' )
 	) {
 
 		return;
@@ -98,7 +118,27 @@ function update_user_meta_for_api( $data, $object ) {
 		
 	foreach ( $data as $key => $value ) {
 		
-		$response = update_user_meta( $id, $key, $value );
+		if (
+			array_search( $key, [
+				'user_login',
+				'user_nicename',
+				'user_email',
+				'user_url',
+				'user_registered',
+				'display_name',
+			]) !== false
+		) {
+			
+			wp_update_user( [
+				$key => $value
+			]);
+			
+		}
+		else {
+					
+			$response = update_user_meta( $id, $key, $value );
+			
+		}		
 		
 	}
 		
@@ -117,7 +157,7 @@ function get_term_meta_for_api( $object ) {
 	
 	// Validation
 	if (
-		! is_user_logged_in()
+		! current_user_can( 'administrator' )
 	) {
 		
 		return [];
@@ -146,7 +186,7 @@ function update_term_meta_for_api( $data, $object ) {
 	
 	// Validation
 	if (
-		! is_user_logged_in()
+		! current_user_can( 'administrator' )
 	) {
 
 		return;
@@ -178,7 +218,7 @@ function get_post_meta_for_api( $object ) {
 	
 	// Validation
 	if (
-		! is_user_logged_in()
+		! current_user_can( 'administrator' )
 	) {
 		
 		return [];
@@ -205,7 +245,7 @@ function update_post_meta_for_api( $data, $object ) {
 
 	// Validation
 	if (
-		! is_user_logged_in()
+		! current_user_can( 'administrator' )
 	) {
 
 		return;
