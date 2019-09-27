@@ -299,6 +299,17 @@ function update_post_meta_for_api( $data, $object ) {
 			
 			}
 			else if (
+				$key == 'single_delete'
+			) {
+				
+				foreach ( $value as $single_key => $single_value ) {
+				
+					$response = delete_post_meta( $post_id, $single_key, $single_value );
+					
+				}
+				
+			}
+			else if (
 				$key === 'advanced_fields'
 			) {
 				
